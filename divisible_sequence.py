@@ -1,18 +1,19 @@
-from collections.abc import Sequence
+from typing import TypeVar, Union, Generic
+SequenceType = TypeVar('SequenceType')
 
 
-class DivisibleSequence:
-    def __truediv__(self, value):
+class Divisible(Generic[SequenceType]):
+    def __truediv__(self: SequenceType, value) -> SequenceType:
         return self // int(value)
 
-    def __floordiv__(self: Sequence, value):
+    def __floordiv__(self: SequenceType, value):
         return tuple(
             self.__class__(
                 self[int(i/value*len(self)):int((i+1)/value*len(self))]
             ) for i in range(value)
         )
 
-    def __mul__(self: Sequence, value):
+    def __mul__(self: SequenceType, value) -> Union['Divisible[SequenceType]', SequenceType]:
         if isinstance(value, int):
             return self.__class__(super().__mul__(value))
 
@@ -24,14 +25,14 @@ class DivisibleSequence:
 divisible_subtypes = {}
 
 
-def divisible(sequence):
+def divisible(sequence: SequenceType) -> Union[SequenceType, Divisible]:
     try:
         subtype = divisible_subtypes[sequence.__class__]
 
     except KeyError:
         subtype = type(
             f'Divisible{sequence.__class__.__name__.title()}',
-            (DivisibleSequence, sequence.__class__),
+            (Divisible, sequence.__class__),
             {}
         )
 
